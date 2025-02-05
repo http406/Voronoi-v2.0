@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+A Voronoi diagram is a partitioning of a plane into regions based on distances to a specific set of points. Each region corresponds to a point, called a seed, and consists of all the points closer to that seed than to any other. This will be a series of codes for experiment and will be created in future gradually & hopefully. It is version 2.0 and enjoy this! 
+
+Created by: `ᴴᵗᵗየ
+Created in: 29th Jan, 2025 at Sololearn
+Voronoi Code no: 05
+-->
+    <title>Voronoi v2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+    <style>
+        * { margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script>
+        let points = [];
+        const numPoints = 100;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        let ctx = document.createElement("canvas").getContext("2d");
+        document.body.appendChild(ctx.canvas);
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
+
+        function Point(x, y) {
+            this.x = x || Math.random() * width;
+            this.y = y || Math.random() * height;
+            let angle = Math.random() * Math.PI * 2;
+            this.xVel = Math.cos(angle) * 2;
+            this.yVel = Math.sin(angle) * 2;
+
+            this.update = function () {
+                this.x += this.xVel;
+                this.y += this.yVel;
+
+                if (this.x > width || this.x < 0) {
+                    this.xVel *= -1;
+                }
+                if (this.y > height || this.y < 0) {
+                    this.yVel *= -1;
+                }
+            };
+
+            this.toArray = function () {
+                return [this.x, this.y];
+            };
+        }
+
+        function resetPoints() {
+            points = Array.from({ length: numPoints }, () => new Point());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            points.forEach(p => p.update());
+
+            const delaunay = d3.Delaunay.from(points.map(p => p.toArray()));
+            const voronoi = delaunay.voronoi([0, 0, width, height]);
+
+            // Draw Voronoi cells
+            ctx.strokeStyle = "cyan";
+            ctx.beginPath();
+            voronoi.render(ctx);
+            ctx.stroke();
+
+            // Draw moving points
+            ctx.fillStyle = "red";
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        function addEffect(x, y) {
+            points.push(new Point(x, y));
+            if (points.length > numPoints) points.shift(); // Maintain limit
+        }
+
+        document.addEventListener("mousemove", e => addEffect(e.clientX, e.clientY));
+        document.addEventListener("touchmove", e => {
+            let touch = e.touches[0];
+            if (touch) addEffect(touch.clientX, touch.clientY);
+        });
+
+        window.addEventListener("resize", () => {
+            ctx.canvas.width = window.innerWidth;
+            ctx.canvas.height = window.innerHeight;
+        });
+
+        resetPoints();
+        animate();
+    </script>
+</body>
+  </html>
+  
